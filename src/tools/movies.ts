@@ -160,6 +160,12 @@ export const DiscoverMoviesSchema = z.object({
     year: z.number().int().optional().describe("Release year filter (e.g., 2024)"),
     min_rating: z.number().min(0).max(10).optional().describe("Minimum vote average (0-10)"),
     max_rating: z.number().min(0).max(10).optional().describe("Maximum vote average (0-10)"),
+    min_vote_count: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Minimum number of votes (helps filter reliable ratings)"),
     sort_by: z
         .enum([
             "popularity.desc",
@@ -222,6 +228,10 @@ export const discoverMoviesTool = {
                 type: "number",
                 description: "Maximum vote average (0-10)",
             },
+            min_vote_count: {
+                type: "number",
+                description: "Minimum number of votes (helps filter reliable ratings)",
+            },
             sort_by: {
                 type: "string",
                 description:
@@ -272,6 +282,7 @@ export async function handleDiscoverMovies(
         primary_release_year: validatedArgs.year,
         "vote_average.gte": validatedArgs.min_rating,
         "vote_average.lte": validatedArgs.max_rating,
+        "vote_count.gte": validatedArgs.min_vote_count,
         sort_by: validatedArgs.sort_by,
         page: validatedArgs.page,
     });
@@ -299,6 +310,7 @@ export async function handleDiscoverMovies(
                 year: validatedArgs.year,
                 min_rating: validatedArgs.min_rating,
                 max_rating: validatedArgs.max_rating,
+                min_vote_count: validatedArgs.min_vote_count,
                 sort_by: validatedArgs.sort_by,
             },
             results: formattedResults,

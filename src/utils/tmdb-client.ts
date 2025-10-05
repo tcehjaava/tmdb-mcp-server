@@ -94,6 +94,7 @@ export class TMDBClient {
         primary_release_year?: number;
         "vote_average.gte"?: number;
         "vote_average.lte"?: number;
+        "vote_count.gte"?: number;
         sort_by?: string;
         page?: number;
     }): Promise<TMDBSearchResponse<TMDBMovie>> {
@@ -106,6 +107,8 @@ export class TMDBClient {
             queryParams["vote_average.gte"] = String(params["vote_average.gte"]);
         if (params["vote_average.lte"])
             queryParams["vote_average.lte"] = String(params["vote_average.lte"]);
+        if (params["vote_count.gte"])
+            queryParams["vote_count.gte"] = String(params["vote_count.gte"]);
         if (params.sort_by) queryParams.sort_by = params.sort_by;
         if (params.page) queryParams.page = String(params.page);
 
