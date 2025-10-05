@@ -9,11 +9,18 @@
  * - get_movie_details: Get detailed information about a specific movie
  * - search_tv_shows: Search for TV shows by name
  * - get_tv_details: Get detailed information about a specific TV show
+ *
+ * Supports two transport modes:
+ * - stdio: For local Claude Desktop integration (default)
+ * - http: For remote deployment via Streamable HTTP (Railway, etc.)
  */
 
 import { config } from "dotenv";
+import { randomUUID } from "crypto";
+import express from "express";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 // Import TMDB client
@@ -158,13 +165,99 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 /**
- * Start the server using stdio transport
- * This allows the server to communicate via standard input/output streams
+ * Start server with stdio transport
+ * Used for local Claude Desktop integration
  */
-async function main() {
+async function startStdioServer() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error("TMDB MCP Server running on stdio");
+    console.error("Ready for Claude Desktop connection");
+}
+
+/**
+ * Start server with Streamable HTTP transport
+ * Used for remote deployment (Railway, etc.)
+ */
+async function startHttpServer() {
+    const app = express();
+    const port = process.env.PORT || 3000;
+
+    // Parse JSON bodies
+    app.use(express.json());
+
+    // Health check endpoint
+    app.get("/health", (_req, res) => {
+        res.json({
+            status: "ok",
+            server: "tmdb-mcp-server",
+            version: "0.1.0",
+            transport: "streamable-http",
+        });
+    });
+
+    // MCP Streamable HTTP endpoint
+    app.all("/mcp", async (req, res) => {
+        console.error(
+            `[HTTP] ${req.method} ${req.path} - Session: ${req.headers["mcp-session-id"] || "new"}`
+        );
+
+        // Create a new transport for each request to prevent request ID collisions
+        const transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: () => randomUUID(),
+            enableJsonResponse: true,
+        });
+
+        try {
+            await transport.handleRequest(req, res, req.body);
+        } catch (error) {
+            console.error("[HTTP] Error handling request:", error);
+            if (!res.headersSent) {
+                res.status(500).json({
+                    error: "Internal server error",
+                    message: error instanceof Error ? error.message : "Unknown error",
+                });
+            }
+        }
+    });
+
+    // 404 handler
+    app.use((_req, res) => {
+        res.status(404).json({
+            error: "Not found",
+            message: "Endpoint not found. Use /mcp for MCP protocol or /health for status check",
+        });
+    });
+
+    // Start HTTP server
+    app.listen(port, () => {
+        console.error(`TMDB MCP Server running on HTTP`);
+        console.error(`Port: ${port}`);
+        console.error(`MCP endpoint: http://localhost:${port}/mcp`);
+        console.error(`Health check: http://localhost:${port}/health`);
+        console.error("Ready for remote MCP connections");
+    });
+}
+
+/**
+ * Main entry point
+ * Chooses transport based on MCP_TRANSPORT environment variable
+ */
+async function main() {
+    const transportMode = process.env.MCP_TRANSPORT || "stdio";
+
+    console.error("=".repeat(50));
+    console.error("TMDB MCP Server");
+    console.error("=".repeat(50));
+    console.error(`Transport mode: ${transportMode}`);
+    console.error(`Node environment: ${process.env.NODE_ENV || "production"}`);
+    console.error("=".repeat(50));
+
+    if (transportMode === "http") {
+        await startHttpServer();
+    } else {
+        await startStdioServer();
+    }
 }
 
 main().catch((error) => {
