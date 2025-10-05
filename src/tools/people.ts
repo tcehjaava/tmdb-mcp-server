@@ -80,3 +80,59 @@ export async function handleSearchPeople(
         2
     );
 }
+
+/**
+ * Zod schema for get_person_details tool
+ */
+export const GetPersonDetailsSchema = z.object({
+    person_id: z.number().int().positive().describe("TMDB person ID"),
+});
+
+/**
+ * Tool definition for get_person_details
+ */
+export const getPersonDetailsTool = {
+    name: "get_person_details",
+    description:
+        "Get detailed biographical information about a person (actor, director, crew member). Returns full biography, birth info, death date (if applicable), IMDb ID, homepage, and more.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            person_id: {
+                type: "number",
+                description: "TMDB person ID",
+            },
+        },
+        required: ["person_id"],
+    },
+};
+
+/**
+ * Handler for get_person_details tool
+ */
+export async function handleGetPersonDetails(
+    args: z.infer<typeof GetPersonDetailsSchema>,
+    tmdbClient: TMDBClient
+): Promise<string> {
+    const validatedArgs = GetPersonDetailsSchema.parse(args);
+    const person = await tmdbClient.getPersonDetails(validatedArgs.person_id);
+
+    const formattedPerson = {
+        id: person.id,
+        name: person.name,
+        biography: person.biography,
+        birthday: person.birthday,
+        deathday: person.deathday,
+        place_of_birth: person.place_of_birth,
+        also_known_as: person.also_known_as,
+        known_for_department: person.known_for_department,
+        popularity: person.popularity,
+        homepage: person.homepage,
+        imdb_id: person.imdb_id,
+        profile_path: person.profile_path
+            ? `https://image.tmdb.org/t/p/h632${person.profile_path}`
+            : null,
+    };
+
+    return JSON.stringify(formattedPerson, null, 2);
+}

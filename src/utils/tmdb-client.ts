@@ -153,4 +153,56 @@ export class TMDBClient {
     async getMovieCredits(movieId: number): Promise<any> {
         return this.get<any>(`/movie/${movieId}/credits`);
     }
+
+    /**
+     * Get person details by ID
+     */
+    async getPersonDetails(personId: number): Promise<any> {
+        return this.get<any>(`/person/${personId}`);
+    }
+
+    /**
+     * Discover TV shows with advanced filters
+     */
+    async discoverTVShows(params: {
+        with_genres?: string;
+        first_air_date_year?: number;
+        "vote_average.gte"?: number;
+        "vote_average.lte"?: number;
+        sort_by?: string;
+        page?: number;
+    }): Promise<TMDBSearchResponse<TMDBTVShow>> {
+        const queryParams: Record<string, string> = {};
+
+        if (params.with_genres) queryParams.with_genres = params.with_genres;
+        if (params.first_air_date_year)
+            queryParams.first_air_date_year = String(params.first_air_date_year);
+        if (params["vote_average.gte"])
+            queryParams["vote_average.gte"] = String(params["vote_average.gte"]);
+        if (params["vote_average.lte"])
+            queryParams["vote_average.lte"] = String(params["vote_average.lte"]);
+        if (params.sort_by) queryParams.sort_by = params.sort_by;
+        if (params.page) queryParams.page = String(params.page);
+
+        return this.get<TMDBSearchResponse<TMDBTVShow>>("/discover/tv", queryParams);
+    }
+
+    /**
+     * Get TV show recommendations based on a TV show ID
+     */
+    async getTVShowRecommendations(
+        tvId: number,
+        page: number = 1
+    ): Promise<TMDBSearchResponse<TMDBTVShow>> {
+        return this.get<TMDBSearchResponse<TMDBTVShow>>(`/tv/${tvId}/recommendations`, {
+            page: String(page),
+        });
+    }
+
+    /**
+     * Get cast and crew for a TV show
+     */
+    async getTVShowCredits(tvId: number): Promise<any> {
+        return this.get<any>(`/tv/${tvId}/credits`);
+    }
 }

@@ -52,14 +52,30 @@ import {
 import {
     searchTVShowsTool,
     getTVShowDetailsTool,
+    discoverTVShowsTool,
+    getTVRecommendationsTool,
+    getTVCreditsTool,
     handleSearchTVShows,
     handleGetTVShowDetails,
+    handleDiscoverTVShows,
+    handleGetTVRecommendations,
+    handleGetTVCredits,
     SearchTVShowsSchema,
     GetTVShowDetailsSchema,
+    DiscoverTVShowsSchema,
+    GetTVRecommendationsSchema,
+    GetTVCreditsSchema,
 } from "./tools/tv.js";
 
 // Import people tools
-import { searchPeopleTool, handleSearchPeople, SearchPeopleSchema } from "./tools/people.js";
+import {
+    searchPeopleTool,
+    getPersonDetailsTool,
+    handleSearchPeople,
+    handleGetPersonDetails,
+    SearchPeopleSchema,
+    GetPersonDetailsSchema,
+} from "./tools/people.js";
 
 // Load environment variables
 config();
@@ -90,7 +106,7 @@ const server = new Server(
 
 /**
  * Handler for listing available tools
- * Returns all 9 TMDB tools
+ * Returns all 13 TMDB tools
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
@@ -103,7 +119,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             getMovieCreditsTool,
             searchTVShowsTool,
             getTVShowDetailsTool,
+            discoverTVShowsTool,
+            getTVRecommendationsTool,
+            getTVCreditsTool,
             searchPeopleTool,
+            getPersonDetailsTool,
         ],
     };
 });
@@ -224,6 +244,58 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "search_people": {
                 const validatedArgs = SearchPeopleSchema.parse(args);
                 const result = await handleSearchPeople(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "get_person_details": {
+                const validatedArgs = GetPersonDetailsSchema.parse(args);
+                const result = await handleGetPersonDetails(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "discover_tv_shows": {
+                const validatedArgs = DiscoverTVShowsSchema.parse(args);
+                const result = await handleDiscoverTVShows(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "get_tv_recommendations": {
+                const validatedArgs = GetTVRecommendationsSchema.parse(args);
+                const result = await handleGetTVRecommendations(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "get_tv_credits": {
+                const validatedArgs = GetTVCreditsSchema.parse(args);
+                const result = await handleGetTVCredits(validatedArgs, tmdbClient);
                 return {
                     content: [
                         {

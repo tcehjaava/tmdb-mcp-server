@@ -169,3 +169,23 @@ export interface TMDBTrendingItem {
     // Additional dynamic fields
     [key: string]: any;
 }
+
+/**
+ * Person details (comprehensive biographical information)
+ */
+export interface TMDBPersonDetails {
+    id: number;
+    name: string;
+    biography: string;
+    birthday: string | null; // "1956-07-09"
+    deathday: string | null; // null if living
+    place_of_birth: string | null;
+    also_known_as: string[]; // Alternative names
+    known_for_department: string; // "Acting", "Directing"
+    homepage: string | null; // Official website
+    imdb_id: string; // "nm0000158"
+    profile_path: string | null;
+    popularity: number;
+    adult: boolean;
+    gender: number; // 0=Not set, 1=Female, 2=Male, 3=Non-binary
+}
