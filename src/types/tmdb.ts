@@ -99,3 +99,73 @@ export interface TMDBError {
     status_message: string;
     success: boolean;
 }
+
+/**
+ * Person from search results
+ */
+export interface TMDBPerson {
+    id: number;
+    name: string;
+    profile_path: string | null;
+    adult: boolean;
+    popularity: number;
+    gender: number; // 0=Not set, 1=Female, 2=Male, 3=Non-binary
+    known_for_department: string; // "Acting", "Directing", etc.
+    known_for: Array<TMDBMovie | TMDBTVShow>; // Movies/TV they're known for
+}
+
+/**
+ * Cast member in movie credits
+ */
+export interface TMDBCastMember {
+    id: number;
+    name: string;
+    character: string;
+    credit_id: string;
+    order: number; // Billing order (0 = top billing)
+    profile_path: string | null;
+    gender: number;
+    known_for_department: string;
+}
+
+/**
+ * Crew member in movie credits
+ */
+export interface TMDBCrewMember {
+    id: number;
+    name: string;
+    job: string; // "Producer", "Writer", "Director of Photography"
+    department: string; // "Production", "Writing", "Camera"
+    credit_id: string;
+    profile_path: string | null;
+    gender: number;
+}
+
+/**
+ * Credits response for a movie
+ */
+export interface TMDBCreditsResponse {
+    id: number; // Movie ID
+    cast: TMDBCastMember[];
+    crew: TMDBCrewMember[];
+}
+
+/**
+ * Trending item (can be movie, TV, or person with media_type)
+ */
+export interface TMDBTrendingItem {
+    media_type: "movie" | "tv" | "person";
+    id: number;
+    popularity: number;
+    vote_average?: number;
+    // Movie-specific fields
+    title?: string;
+    release_date?: string;
+    // TV-specific fields
+    name?: string;
+    first_air_date?: string;
+    // Person-specific fields
+    known_for_department?: string;
+    // Additional dynamic fields
+    [key: string]: any;
+}

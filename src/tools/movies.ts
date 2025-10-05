@@ -347,3 +347,180 @@ export async function handleGetRecommendations(
         2
     );
 }
+
+/**
+ * Zod schema for get_trending tool
+ */
+export const GetTrendingSchema = z.object({
+    media_type: z
+        .enum(["all", "movie", "tv", "person"])
+        .default("all")
+        .describe("Type of content: all, movie, tv, or person"),
+    time_window: z
+        .enum(["day", "week"])
+        .default("week")
+        .describe("Time period: day (24 hours) or week (7 days)"),
+    page: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .default(1)
+        .describe("Page number for paginated results (default: 1)"),
+});
+
+/**
+ * Zod schema for get_movie_credits tool
+ */
+export const GetMovieCreditsSchema = z.object({
+    movie_id: z.number().int().positive().describe("TMDB movie ID"),
+});
+
+/**
+ * Tool definition for get_trending
+ */
+export const getTrendingTool = {
+    name: "get_trending",
+    description:
+        "Get daily or weekly trending movies, TV shows, or people. Returns what's currently popular on TMDB based on user activity.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            media_type: {
+                type: "string",
+                description: "Content type: all, movie, tv, or person (default: all)",
+            },
+            time_window: {
+                type: "string",
+                description: "Time period: day or week (default: week)",
+            },
+            page: {
+                type: "number",
+                description: "Page number for paginated results (default: 1)",
+            },
+        },
+    },
+};
+
+/**
+ * Tool definition for get_movie_credits
+ */
+export const getMovieCreditsTool = {
+    name: "get_movie_credits",
+    description:
+        "Get cast and crew information for a specific movie. Returns actors with their characters and crew members with their roles/departments.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            movie_id: {
+                type: "number",
+                description: "TMDB movie ID",
+            },
+        },
+        required: ["movie_id"],
+    },
+};
+
+/**
+ * Handler for get_trending tool
+ */
+export async function handleGetTrending(
+    args: z.infer<typeof GetTrendingSchema>,
+    tmdbClient: TMDBClient
+): Promise<string> {
+    const validatedArgs = GetTrendingSchema.parse(args);
+
+    const result = await tmdbClient.getTrending(
+        validatedArgs.media_type,
+        validatedArgs.time_window,
+        validatedArgs.page
+    );
+
+    const formattedResults = result.results.map((item: any) => {
+        const base = {
+            id: item.id,
+            media_type: item.media_type,
+            popularity: item.popularity,
+            vote_average: item.vote_average,
+        };
+
+        if (item.media_type === "movie") {
+            return {
+                ...base,
+                title: item.title,
+                release_date: item.release_date,
+                overview: item.overview,
+            };
+        } else if (item.media_type === "tv") {
+            return {
+                ...base,
+                name: item.name,
+                first_air_date: item.first_air_date,
+                overview: item.overview,
+            };
+        } else {
+            // person
+            return {
+                ...base,
+                name: item.name,
+                known_for_department: item.known_for_department,
+            };
+        }
+    });
+
+    return JSON.stringify(
+        {
+            media_type: validatedArgs.media_type,
+            time_window: validatedArgs.time_window,
+            page: result.page,
+            total_results: result.total_results,
+            total_pages: result.total_pages,
+            results: formattedResults,
+        },
+        null,
+        2
+    );
+}
+
+/**
+ * Handler for get_movie_credits tool
+ */
+export async function handleGetMovieCredits(
+    args: z.infer<typeof GetMovieCreditsSchema>,
+    tmdbClient: TMDBClient
+): Promise<string> {
+    const validatedArgs = GetMovieCreditsSchema.parse(args);
+    const credits = await tmdbClient.getMovieCredits(validatedArgs.movie_id);
+
+    // Format and return top 20 cast members and key crew
+    const formattedCast = credits.cast.slice(0, 20).map((member: any) => ({
+        id: member.id,
+        name: member.name,
+        character: member.character,
+        order: member.order,
+        profile_path: member.profile_path
+            ? `https://image.tmdb.org/t/p/w185${member.profile_path}`
+            : null,
+    }));
+
+    // Filter crew to key roles: Directors, Producers, Writers
+    const keyJobs = ["Director", "Producer", "Writer", "Screenplay", "Story", "Executive Producer"];
+    const formattedCrew = credits.crew
+        .filter((member: any) => keyJobs.includes(member.job))
+        .map((member: any) => ({
+            id: member.id,
+            name: member.name,
+            job: member.job,
+            department: member.department,
+        }));
+
+    return JSON.stringify(
+        {
+            movie_id: credits.id,
+            cast: formattedCast,
+            crew: formattedCrew,
+        },
+        null,
+        2
+    );
+}

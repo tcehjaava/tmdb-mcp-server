@@ -32,14 +32,20 @@ import {
     getMovieDetailsTool,
     discoverMoviesTool,
     getRecommendationsTool,
+    getTrendingTool,
+    getMovieCreditsTool,
     handleSearchMovies,
     handleGetMovieDetails,
     handleDiscoverMovies,
     handleGetRecommendations,
+    handleGetTrending,
+    handleGetMovieCredits,
     SearchMoviesSchema,
     GetMovieDetailsSchema,
     DiscoverMoviesSchema,
     GetRecommendationsSchema,
+    GetTrendingSchema,
+    GetMovieCreditsSchema,
 } from "./tools/movies.js";
 
 // Import TV show tools
@@ -51,6 +57,9 @@ import {
     SearchTVShowsSchema,
     GetTVShowDetailsSchema,
 } from "./tools/tv.js";
+
+// Import people tools
+import { searchPeopleTool, handleSearchPeople, SearchPeopleSchema } from "./tools/people.js";
 
 // Load environment variables
 config();
@@ -81,7 +90,7 @@ const server = new Server(
 
 /**
  * Handler for listing available tools
- * Returns all 6 TMDB tools
+ * Returns all 9 TMDB tools
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
@@ -90,8 +99,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             getMovieDetailsTool,
             discoverMoviesTool,
             getRecommendationsTool,
+            getTrendingTool,
+            getMovieCreditsTool,
             searchTVShowsTool,
             getTVShowDetailsTool,
+            searchPeopleTool,
         ],
     };
 });
@@ -173,6 +185,45 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "get_tv_details": {
                 const validatedArgs = GetTVShowDetailsSchema.parse(args);
                 const result = await handleGetTVShowDetails(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "get_trending": {
+                const validatedArgs = GetTrendingSchema.parse(args);
+                const result = await handleGetTrending(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "get_movie_credits": {
+                const validatedArgs = GetMovieCreditsSchema.parse(args);
+                const result = await handleGetMovieCredits(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "search_people": {
+                const validatedArgs = SearchPeopleSchema.parse(args);
+                const result = await handleSearchPeople(validatedArgs, tmdbClient);
                 return {
                     content: [
                         {

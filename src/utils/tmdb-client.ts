@@ -123,4 +123,34 @@ export class TMDBClient {
             page: String(page),
         });
     }
+
+    /**
+     * Get trending movies, TV shows, or people
+     */
+    async getTrending(
+        mediaType: "all" | "movie" | "tv" | "person",
+        timeWindow: "day" | "week",
+        page: number = 1
+    ): Promise<TMDBSearchResponse<any>> {
+        return this.get<TMDBSearchResponse<any>>(`/trending/${mediaType}/${timeWindow}`, {
+            page: String(page),
+        });
+    }
+
+    /**
+     * Search for people by name
+     */
+    async searchPeople(query: string, page: number = 1): Promise<TMDBSearchResponse<any>> {
+        return this.get<TMDBSearchResponse<any>>("/search/person", {
+            query,
+            page: String(page),
+        });
+    }
+
+    /**
+     * Get cast and crew for a movie
+     */
+    async getMovieCredits(movieId: number): Promise<any> {
+        return this.get<any>(`/movie/${movieId}/credits`);
+    }
 }
