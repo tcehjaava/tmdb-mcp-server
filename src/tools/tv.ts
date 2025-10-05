@@ -159,6 +159,12 @@ export const DiscoverTVShowsSchema = z.object({
         .describe(
             "Genre IDs comma-separated (10759=Action & Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 10762=Kids, 9648=Mystery, 10763=News, 10764=Reality, 10765=Sci-Fi & Fantasy, 10766=Soap, 10767=Talk, 10768=War & Politics, 37=Western)"
         ),
+    with_original_language: z
+        .string()
+        .optional()
+        .describe(
+            "Filter by original language using ISO 639-1 codes. Single language (e.g., 'ja') or comma-separated for multiple (e.g., 'ja,ko,zh')"
+        ),
     year: z.number().int().optional().describe("First air date year filter (e.g., 2024)"),
     min_rating: z.number().min(0).max(10).optional().describe("Minimum vote average (0-10)"),
     max_rating: z.number().min(0).max(10).optional().describe("Maximum vote average (0-10)"),
@@ -210,7 +216,7 @@ export const GetTVCreditsSchema = z.object({
 export const discoverTVShowsTool = {
     name: "discover_tv_shows",
     description:
-        "Discover TV shows with advanced filters including genre, year, rating, and sorting. Perfect for finding shows that match specific criteria like 'sci-fi shows from 2023 with rating above 7'.",
+        "Discover TV shows with advanced filters including genre, language, year, rating, and sorting. Perfect for finding shows that match specific criteria like 'Korean dramas from 2023 with rating above 7' or 'Japanese anime shows'.",
     inputSchema: {
         type: "object",
         properties: {
@@ -218,6 +224,11 @@ export const discoverTVShowsTool = {
                 type: "string",
                 description:
                     "Genre IDs comma-separated (10759=Action & Adventure, 35=Comedy, 18=Drama, 9648=Mystery, 10765=Sci-Fi & Fantasy)",
+            },
+            with_original_language: {
+                type: "string",
+                description:
+                    "Filter by original language using ISO 639-1 codes. Single language (e.g., 'ja') or comma-separated for multiple (e.g., 'ja,ko,zh')",
             },
             year: {
                 type: "number",
@@ -297,6 +308,7 @@ export async function handleDiscoverTVShows(
 
     const result = await tmdbClient.discoverTVShows({
         with_genres: validatedArgs.with_genres,
+        with_original_language: validatedArgs.with_original_language,
         first_air_date_year: validatedArgs.year,
         "vote_average.gte": validatedArgs.min_rating,
         "vote_average.lte": validatedArgs.max_rating,
@@ -322,6 +334,7 @@ export async function handleDiscoverTVShows(
             total_pages: result.total_pages,
             filters_applied: {
                 genres: validatedArgs.with_genres,
+                original_language: validatedArgs.with_original_language,
                 year: validatedArgs.year,
                 min_rating: validatedArgs.min_rating,
                 max_rating: validatedArgs.max_rating,

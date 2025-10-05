@@ -157,6 +157,12 @@ export const DiscoverMoviesSchema = z.object({
         .describe(
             "Genre IDs comma-separated (28=Action, 12=Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 14=Fantasy, 36=History, 27=Horror, 10402=Music, 9648=Mystery, 10749=Romance, 878=Science Fiction, 10770=TV Movie, 53=Thriller, 10752=War, 37=Western)"
         ),
+    with_original_language: z
+        .string()
+        .optional()
+        .describe(
+            "Filter by original language using ISO 639-1 codes. Single language (e.g., 'ja') or comma-separated for multiple (e.g., 'ja,ko,zh')"
+        ),
     min_year: z
         .number()
         .int()
@@ -218,7 +224,7 @@ export const GetRecommendationsSchema = z.object({
 export const discoverMoviesTool = {
     name: "discover_movies",
     description:
-        "Discover movies with advanced filters including genre, year range, rating, and sorting. Perfect for finding movies that match specific criteria like 'sci-fi movies from 2020 onwards with rating above 7' or 'classic action movies before 2000'.",
+        "Discover movies with advanced filters including genre, language, year range, rating, and sorting. Perfect for finding movies that match specific criteria like 'Japanese sci-fi movies from 2020 onwards with rating above 7' or 'Korean dramas with high ratings'.",
     inputSchema: {
         type: "object",
         properties: {
@@ -226,6 +232,11 @@ export const discoverMoviesTool = {
                 type: "string",
                 description:
                     "Genre IDs comma-separated (28=Action, 12=Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 14=Fantasy, 36=History, 27=Horror, 10402=Music, 9648=Mystery, 10749=Romance, 878=Science Fiction, 10770=TV Movie, 53=Thriller, 10752=War, 37=Western)",
+            },
+            with_original_language: {
+                type: "string",
+                description:
+                    "Filter by original language using ISO 639-1 codes. Single language (e.g., 'ja') or comma-separated for multiple (e.g., 'ja,ko,zh')",
             },
             min_year: {
                 type: "number",
@@ -294,6 +305,7 @@ export async function handleDiscoverMovies(
 
     const result = await tmdbClient.discoverMovies({
         with_genres: validatedArgs.with_genres,
+        with_original_language: validatedArgs.with_original_language,
         "primary_release_date.gte": validatedArgs.min_year
             ? `${validatedArgs.min_year}-01-01`
             : undefined,
@@ -327,6 +339,7 @@ export async function handleDiscoverMovies(
             total_pages: result.total_pages,
             filters_applied: {
                 genres: validatedArgs.with_genres,
+                original_language: validatedArgs.with_original_language,
                 min_year: validatedArgs.min_year,
                 max_year: validatedArgs.max_year,
                 min_rating: validatedArgs.min_rating,

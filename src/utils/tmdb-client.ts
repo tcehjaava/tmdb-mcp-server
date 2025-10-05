@@ -91,6 +91,7 @@ export class TMDBClient {
      */
     async discoverMovies(params: {
         with_genres?: string;
+        with_original_language?: string;
         "primary_release_date.gte"?: string;
         "primary_release_date.lte"?: string;
         "vote_average.gte"?: number;
@@ -102,6 +103,8 @@ export class TMDBClient {
         const queryParams: Record<string, string> = {};
 
         if (params.with_genres) queryParams.with_genres = params.with_genres;
+        if (params.with_original_language)
+            queryParams.with_original_language = params.with_original_language;
         if (params["primary_release_date.gte"])
             queryParams["primary_release_date.gte"] = params["primary_release_date.gte"];
         if (params["primary_release_date.lte"])
@@ -172,6 +175,7 @@ export class TMDBClient {
      */
     async discoverTVShows(params: {
         with_genres?: string;
+        with_original_language?: string;
         first_air_date_year?: number;
         "vote_average.gte"?: number;
         "vote_average.lte"?: number;
@@ -181,6 +185,8 @@ export class TMDBClient {
         const queryParams: Record<string, string> = {};
 
         if (params.with_genres) queryParams.with_genres = params.with_genres;
+        if (params.with_original_language)
+            queryParams.with_original_language = params.with_original_language;
         if (params.first_air_date_year)
             queryParams.first_air_date_year = String(params.first_air_date_year);
         if (params["vote_average.gte"])
