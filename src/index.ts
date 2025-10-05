@@ -30,10 +30,16 @@ import { TMDBClient } from "./utils/tmdb-client.js";
 import {
     searchMoviesTool,
     getMovieDetailsTool,
+    discoverMoviesTool,
+    getRecommendationsTool,
     handleSearchMovies,
     handleGetMovieDetails,
+    handleDiscoverMovies,
+    handleGetRecommendations,
     SearchMoviesSchema,
     GetMovieDetailsSchema,
+    DiscoverMoviesSchema,
+    GetRecommendationsSchema,
 } from "./tools/movies.js";
 
 // Import TV show tools
@@ -75,11 +81,18 @@ const server = new Server(
 
 /**
  * Handler for listing available tools
- * Returns all 4 TMDB tools
+ * Returns all 6 TMDB tools
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-        tools: [searchMoviesTool, getMovieDetailsTool, searchTVShowsTool, getTVShowDetailsTool],
+        tools: [
+            searchMoviesTool,
+            getMovieDetailsTool,
+            discoverMoviesTool,
+            getRecommendationsTool,
+            searchTVShowsTool,
+            getTVShowDetailsTool,
+        ],
     };
 });
 
@@ -108,6 +121,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "get_movie_details": {
                 const validatedArgs = GetMovieDetailsSchema.parse(args);
                 const result = await handleGetMovieDetails(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "discover_movies": {
+                const validatedArgs = DiscoverMoviesSchema.parse(args);
+                const result = await handleDiscoverMovies(validatedArgs, tmdbClient);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: result,
+                        },
+                    ],
+                };
+            }
+
+            case "get_recommendations": {
+                const validatedArgs = GetRecommendationsSchema.parse(args);
+                const result = await handleGetRecommendations(validatedArgs, tmdbClient);
                 return {
                     content: [
                         {

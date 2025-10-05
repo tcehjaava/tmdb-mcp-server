@@ -146,3 +146,204 @@ export async function handleGetMovieDetails(
 
     return JSON.stringify(formattedMovie, null, 2);
 }
+
+/**
+ * Zod schema for discover_movies tool
+ */
+export const DiscoverMoviesSchema = z.object({
+    with_genres: z
+        .string()
+        .optional()
+        .describe(
+            "Genre IDs comma-separated (28=Action, 12=Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 14=Fantasy, 36=History, 27=Horror, 10402=Music, 9648=Mystery, 10749=Romance, 878=Science Fiction, 10770=TV Movie, 53=Thriller, 10752=War, 37=Western)"
+        ),
+    year: z.number().int().optional().describe("Release year filter (e.g., 2024)"),
+    min_rating: z.number().min(0).max(10).optional().describe("Minimum vote average (0-10)"),
+    max_rating: z.number().min(0).max(10).optional().describe("Maximum vote average (0-10)"),
+    sort_by: z
+        .enum([
+            "popularity.desc",
+            "popularity.asc",
+            "vote_average.desc",
+            "vote_average.asc",
+            "release_date.desc",
+            "release_date.asc",
+        ])
+        .optional()
+        .default("popularity.desc")
+        .describe("Sort order for results"),
+    page: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .default(1)
+        .describe("Page number for paginated results (default: 1)"),
+});
+
+/**
+ * Zod schema for get_recommendations tool
+ */
+export const GetRecommendationsSchema = z.object({
+    movie_id: z.number().int().positive().describe("TMDB movie ID to get recommendations for"),
+    page: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .default(1)
+        .describe("Page number for paginated results (default: 1)"),
+});
+
+/**
+ * Tool definition for discover_movies
+ */
+export const discoverMoviesTool = {
+    name: "discover_movies",
+    description:
+        "Discover movies with advanced filters including genre, year, rating, and sorting. Perfect for finding movies that match specific criteria like 'sci-fi movies from 2023 with rating above 7' or 'popular action comedies'.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            with_genres: {
+                type: "string",
+                description:
+                    "Genre IDs comma-separated (28=Action, 12=Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 14=Fantasy, 36=History, 27=Horror, 10402=Music, 9648=Mystery, 10749=Romance, 878=Science Fiction, 10770=TV Movie, 53=Thriller, 10752=War, 37=Western)",
+            },
+            year: {
+                type: "number",
+                description: "Release year filter",
+            },
+            min_rating: {
+                type: "number",
+                description: "Minimum vote average (0-10)",
+            },
+            max_rating: {
+                type: "number",
+                description: "Maximum vote average (0-10)",
+            },
+            sort_by: {
+                type: "string",
+                description:
+                    "Sort order (popularity.desc, popularity.asc, vote_average.desc, vote_average.asc, release_date.desc, release_date.asc)",
+            },
+            page: {
+                type: "number",
+                description: "Page number (default: 1)",
+            },
+        },
+    },
+};
+
+/**
+ * Tool definition for get_recommendations
+ */
+export const getRecommendationsTool = {
+    name: "get_recommendations",
+    description:
+        "Get movie recommendations based on a specific movie. Returns similar movies that users who liked the given movie also enjoyed. Great for 'If you liked X, try Y' suggestions.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            movie_id: {
+                type: "number",
+                description: "TMDB movie ID to base recommendations on",
+            },
+            page: {
+                type: "number",
+                description: "Page number for pagination (default: 1)",
+            },
+        },
+        required: ["movie_id"],
+    },
+};
+
+/**
+ * Handler for discover_movies tool
+ */
+export async function handleDiscoverMovies(
+    args: z.infer<typeof DiscoverMoviesSchema>,
+    tmdbClient: TMDBClient
+): Promise<string> {
+    const validatedArgs = DiscoverMoviesSchema.parse(args);
+
+    const result = await tmdbClient.discoverMovies({
+        with_genres: validatedArgs.with_genres,
+        primary_release_year: validatedArgs.year,
+        "vote_average.gte": validatedArgs.min_rating,
+        "vote_average.lte": validatedArgs.max_rating,
+        sort_by: validatedArgs.sort_by,
+        page: validatedArgs.page,
+    });
+
+    const formattedResults = result.results.map((movie: TMDBMovie) => ({
+        id: movie.id,
+        title: movie.title,
+        release_date: movie.release_date,
+        overview: movie.overview,
+        vote_average: movie.vote_average,
+        vote_count: movie.vote_count,
+        popularity: movie.popularity,
+        poster_path: movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : null,
+    }));
+
+    return JSON.stringify(
+        {
+            page: result.page,
+            total_results: result.total_results,
+            total_pages: result.total_pages,
+            filters_applied: {
+                genres: validatedArgs.with_genres,
+                year: validatedArgs.year,
+                min_rating: validatedArgs.min_rating,
+                max_rating: validatedArgs.max_rating,
+                sort_by: validatedArgs.sort_by,
+            },
+            results: formattedResults,
+        },
+        null,
+        2
+    );
+}
+
+/**
+ * Handler for get_recommendations tool
+ */
+export async function handleGetRecommendations(
+    args: z.infer<typeof GetRecommendationsSchema>,
+    tmdbClient: TMDBClient
+): Promise<string> {
+    const validatedArgs = GetRecommendationsSchema.parse(args);
+
+    const result = await tmdbClient.getMovieRecommendations(
+        validatedArgs.movie_id,
+        validatedArgs.page
+    );
+
+    const formattedResults = result.results.map((movie: TMDBMovie) => ({
+        id: movie.id,
+        title: movie.title,
+        release_date: movie.release_date,
+        overview: movie.overview,
+        vote_average: movie.vote_average,
+        vote_count: movie.vote_count,
+        popularity: movie.popularity,
+        poster_path: movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : null,
+    }));
+
+    return JSON.stringify(
+        {
+            based_on_movie_id: validatedArgs.movie_id,
+            page: result.page,
+            total_results: result.total_results,
+            total_pages: result.total_pages,
+            recommendations: formattedResults,
+        },
+        null,
+        2
+    );
+}

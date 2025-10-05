@@ -85,4 +85,42 @@ export class TMDBClient {
     async getTVShowDetails(tvId: number): Promise<TMDBTVShowDetails> {
         return this.get<TMDBTVShowDetails>(`/tv/${tvId}`);
     }
+
+    /**
+     * Discover movies with advanced filters
+     */
+    async discoverMovies(params: {
+        with_genres?: string;
+        primary_release_year?: number;
+        "vote_average.gte"?: number;
+        "vote_average.lte"?: number;
+        sort_by?: string;
+        page?: number;
+    }): Promise<TMDBSearchResponse<TMDBMovie>> {
+        const queryParams: Record<string, string> = {};
+
+        if (params.with_genres) queryParams.with_genres = params.with_genres;
+        if (params.primary_release_year)
+            queryParams.primary_release_year = String(params.primary_release_year);
+        if (params["vote_average.gte"])
+            queryParams["vote_average.gte"] = String(params["vote_average.gte"]);
+        if (params["vote_average.lte"])
+            queryParams["vote_average.lte"] = String(params["vote_average.lte"]);
+        if (params.sort_by) queryParams.sort_by = params.sort_by;
+        if (params.page) queryParams.page = String(params.page);
+
+        return this.get<TMDBSearchResponse<TMDBMovie>>("/discover/movie", queryParams);
+    }
+
+    /**
+     * Get movie recommendations based on a movie ID
+     */
+    async getMovieRecommendations(
+        movieId: number,
+        page: number = 1
+    ): Promise<TMDBSearchResponse<TMDBMovie>> {
+        return this.get<TMDBSearchResponse<TMDBMovie>>(`/movie/${movieId}/recommendations`, {
+            page: String(page),
+        });
+    }
 }
