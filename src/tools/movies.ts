@@ -157,7 +157,18 @@ export const DiscoverMoviesSchema = z.object({
         .describe(
             "Genre IDs comma-separated (28=Action, 12=Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 14=Fantasy, 36=History, 27=Horror, 10402=Music, 9648=Mystery, 10749=Romance, 878=Science Fiction, 10770=TV Movie, 53=Thriller, 10752=War, 37=Western)"
         ),
-    year: z.number().int().optional().describe("Release year filter (e.g., 2024)"),
+    min_year: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Minimum release year (e.g., 2020 for movies from 2020 onwards)"),
+    max_year: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Maximum release year (e.g., 2023 for movies up to 2023)"),
     min_rating: z.number().min(0).max(10).optional().describe("Minimum vote average (0-10)"),
     max_rating: z.number().min(0).max(10).optional().describe("Maximum vote average (0-10)"),
     min_vote_count: z
@@ -207,7 +218,7 @@ export const GetRecommendationsSchema = z.object({
 export const discoverMoviesTool = {
     name: "discover_movies",
     description:
-        "Discover movies with advanced filters including genre, year, rating, and sorting. Perfect for finding movies that match specific criteria like 'sci-fi movies from 2023 with rating above 7' or 'popular action comedies'.",
+        "Discover movies with advanced filters including genre, year range, rating, and sorting. Perfect for finding movies that match specific criteria like 'sci-fi movies from 2020 onwards with rating above 7' or 'classic action movies before 2000'.",
     inputSchema: {
         type: "object",
         properties: {
@@ -216,9 +227,13 @@ export const discoverMoviesTool = {
                 description:
                     "Genre IDs comma-separated (28=Action, 12=Adventure, 16=Animation, 35=Comedy, 80=Crime, 99=Documentary, 18=Drama, 10751=Family, 14=Fantasy, 36=History, 27=Horror, 10402=Music, 9648=Mystery, 10749=Romance, 878=Science Fiction, 10770=TV Movie, 53=Thriller, 10752=War, 37=Western)",
             },
-            year: {
+            min_year: {
                 type: "number",
-                description: "Release year filter",
+                description: "Minimum release year (e.g., 2020 for movies from 2020 onwards)",
+            },
+            max_year: {
+                type: "number",
+                description: "Maximum release year (e.g., 2023 for movies up to 2023)",
             },
             min_rating: {
                 type: "number",
@@ -279,7 +294,12 @@ export async function handleDiscoverMovies(
 
     const result = await tmdbClient.discoverMovies({
         with_genres: validatedArgs.with_genres,
-        primary_release_year: validatedArgs.year,
+        "primary_release_date.gte": validatedArgs.min_year
+            ? `${validatedArgs.min_year}-01-01`
+            : undefined,
+        "primary_release_date.lte": validatedArgs.max_year
+            ? `${validatedArgs.max_year}-12-31`
+            : undefined,
         "vote_average.gte": validatedArgs.min_rating,
         "vote_average.lte": validatedArgs.max_rating,
         "vote_count.gte": validatedArgs.min_vote_count,
@@ -307,7 +327,8 @@ export async function handleDiscoverMovies(
             total_pages: result.total_pages,
             filters_applied: {
                 genres: validatedArgs.with_genres,
-                year: validatedArgs.year,
+                min_year: validatedArgs.min_year,
+                max_year: validatedArgs.max_year,
                 min_rating: validatedArgs.min_rating,
                 max_rating: validatedArgs.max_rating,
                 min_vote_count: validatedArgs.min_vote_count,

@@ -91,7 +91,8 @@ export class TMDBClient {
      */
     async discoverMovies(params: {
         with_genres?: string;
-        primary_release_year?: number;
+        "primary_release_date.gte"?: string;
+        "primary_release_date.lte"?: string;
         "vote_average.gte"?: number;
         "vote_average.lte"?: number;
         "vote_count.gte"?: number;
@@ -101,8 +102,10 @@ export class TMDBClient {
         const queryParams: Record<string, string> = {};
 
         if (params.with_genres) queryParams.with_genres = params.with_genres;
-        if (params.primary_release_year)
-            queryParams.primary_release_year = String(params.primary_release_year);
+        if (params["primary_release_date.gte"])
+            queryParams["primary_release_date.gte"] = params["primary_release_date.gte"];
+        if (params["primary_release_date.lte"])
+            queryParams["primary_release_date.lte"] = params["primary_release_date.lte"];
         if (params["vote_average.gte"])
             queryParams["vote_average.gte"] = String(params["vote_average.gte"]);
         if (params["vote_average.lte"])
