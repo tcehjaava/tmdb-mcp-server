@@ -6,7 +6,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tejachava/tmdb-mcp-server"
+    "url": "https://github.com/tcehjaava/tmdb-mcp-server"
   },
   "keywords": [
     "mcp",

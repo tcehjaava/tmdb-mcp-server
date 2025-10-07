@@ -35,7 +35,7 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that pr
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/tejachava/tmdb-mcp-server.git
+git clone https://github.com/tcehjaava/tmdb-mcp-server.git
 cd tmdb-mcp-server
 ```
 
