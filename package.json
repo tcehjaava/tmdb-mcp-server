@@ -2,8 +2,22 @@
   "name": "tmdb-mcp-server",
   "version": "0.1.0",
   "description": "MCP server for The Movie Database (TMDB) API",
-  "private": true,
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tejachava/tmdb-mcp-server"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "tmdb",
+    "movies",
+    "tv-shows",
+    "claude",
+    "ai"
+  ],
+  "author": "Teja Chava",
   "bin": {
     "tmdb-mcp-server": "./build/index.js"
   },
