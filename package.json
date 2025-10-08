@@ -1,6 +1,7 @@
 {
   "name": "tmdb-mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "mcpName": "io.github.tcehjaava/tmdb-mcp-server",
   "description": "MCP server for The Movie Database (TMDB) API",
   "license": "MIT",
   "type": "module",
