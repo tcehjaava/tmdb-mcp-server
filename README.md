@@ -1,6 +1,26 @@
 # TMDB MCP Server
 
+[![npm version](https://img.shields.io/npm/v/tmdb-mcp-server.svg)](https://www.npmjs.com/package/tmdb-mcp-server)
+[![npm downloads](https://img.shields.io/npm/dm/tmdb-mcp-server.svg)](https://www.npmjs.com/package/tmdb-mcp-server)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that provides access to [The Movie Database (TMDB)](https://www.themoviedb.org/) API. This server enables Claude and other MCP clients to search for movies, TV shows, and people, as well as get detailed information and recommendations.
+
+🌟 **Now available on the [Official MCP Registry](https://registry.modelcontextprotocol.io)**
+
+## Quick Start
+
+Get started in seconds with npm:
+
+```bash
+# Install globally
+npm install -g tmdb-mcp-server
+
+# Or use with npx (no installation needed)
+npx tmdb-mcp-server
+```
+
+**Get your free TMDB API token**: https://www.themoviedb.org/settings/api
 
 ## Features
 
@@ -27,11 +47,23 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that pr
 
 ## Installation
 
-### Prerequisites
+### Option 1: npm (Recommended)
+
+Install from npm registry:
+
+```bash
+npm install -g tmdb-mcp-server
+```
+
+That's it! No build step required.
+
+### Option 2: From Source (For Development)
+
+**Prerequisites:**
 - Node.js (v18 or higher)
 - A TMDB API access token (get one free at [TMDB](https://www.themoviedb.org/settings/api))
 
-### Setup
+**Steps:**
 
 1. Clone the repository:
 ```bash
@@ -64,6 +96,24 @@ Add the server to your Claude Desktop configuration:
 **MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
+#### If installed via npm:
+
+```json
+{
+  "mcpServers": {
+    "tmdb": {
+      "command": "npx",
+      "args": ["-y", "tmdb-mcp-server"],
+      "env": {
+        "TMDB_ACCESS_TOKEN": "your_tmdb_access_token_here"
+      }
+    }
+  }
+}
+```
+
+#### If installed from source:
+
 ```json
 {
   "mcpServers": {
@@ -71,7 +121,7 @@ Add the server to your Claude Desktop configuration:
       "command": "node",
       "args": ["/absolute/path/to/tmdb-mcp-server/build/index.js"],
       "env": {
-        "TMDB_ACCESS_TOKEN": "your_token_here"
+        "TMDB_ACCESS_TOKEN": "your_tmdb_access_token_here"
       }
     }
   }
