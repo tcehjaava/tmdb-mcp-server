@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.tcehjaava/tmdb-mcp-server",
+  "description": "MCP server for The Movie Database (TMDB) API",
+  "repository": {
+    "url": "https://github.com/tcehjaava/tmdb-mcp-server",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "tmdb-mcp-server",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "TMDB API access token (get free at https://www.themoviedb.org/settings/api)",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true,
+          "name": "TMDB_ACCESS_TOKEN"
+        }
+      ]
+    }
+  ]
+}
