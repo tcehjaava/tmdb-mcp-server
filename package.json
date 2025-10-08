@@ -18,11 +18,21 @@
     "ai"
   ],
   "author": "Teja Chava",
+  "homepage": "https://github.com/tcehjaava/tmdb-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/tcehjaava/tmdb-mcp-server/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "bin": {
     "tmdb-mcp-server": "./build/index.js"
   },
   "files": [
-    "build"
+    "build",
+    "README.md",
+    "LICENSE",
+    "TRANSPORT.md"
   ],
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
